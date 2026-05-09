@@ -47,7 +47,7 @@ pub(crate) struct Paste {
 
 /// Return `true` if `ext` identifies a Markdown paste.
 pub(crate) fn is_markdown_ext(ext: Option<&str>) -> bool {
-    ext.is_some_and(|ext| ext.eq_ignore_ascii_case("md") || ext.eq_ignore_ascii_case("markdown"))
+    ext.is_some_and(|ext| matches!(ext.to_ascii_lowercase().as_str(), "md"|"markdown"|"mkd"|"mdown"|"markup"))
 }
 
 #[expect(clippy::too_many_arguments)]

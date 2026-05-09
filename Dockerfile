@@ -66,7 +66,7 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 
 WORKDIR /app
-ENV WASTEBIN_TITLE="0x.ax"
+ENV WASTEBIN_TITLE="x0.ax"
 COPY --from=builder /app/target/aarch64-unknown-linux-musl/release/wastebin ./
 COPY --from=builder /app/target/aarch64-unknown-linux-musl/release/wastebin-ctl ./
 USER app:app
