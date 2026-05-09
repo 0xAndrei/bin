@@ -18,9 +18,9 @@
   --gutter-fg: light-dark(#8a919c, #5a616b);
   --border: light-dark(#d8d7d1, #2a3038);
   --border-soft: light-dark(#ecebe6, #1b1f26);
-  --accent: light-dark(oklch(0.52 0.14 220), oklch(0.72 0.14 220));
-  --accent-bg: light-dark(oklch(0.52 0.14 220 / 0.10), oklch(0.72 0.14 220 / 0.14));
-  --accent-bg-gutter: light-dark(oklch(0.52 0.14 220 / 0.15), oklch(0.72 0.14 220 / 0.20));
+  --accent: light-dark(oklch(0.72 0.02 250), oklch(0.80 0.02 250));
+  --accent-bg: light-dark(oklch(0.72 0.02 250 / 0.18), oklch(0.80 0.02 250 / 0.22));
+  --accent-bg-gutter: light-dark(oklch(0.72 0.02 250 / 0.24), oklch(0.80 0.02 250 / 0.28));
   --accent-fg: light-dark(oklch(0.38 0.14 220), oklch(0.88 0.09 220));
   --danger: light-dark(oklch(0.52 0.18 25), oklch(0.70 0.16 25));
   --danger-bg: light-dark(oklch(0.52 0.18 25 / 0.08), oklch(0.70 0.16 25 / 0.12));
