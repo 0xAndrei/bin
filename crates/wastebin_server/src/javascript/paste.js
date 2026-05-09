@@ -8,35 +8,6 @@ copyButton.addEventListener("click", copy);
 const TOAST_CONTENT = copyButton.dataset.toastContent;
 const TOAST_URL = copyButton.dataset.toastUrl;
 
-function highlightLines(scroll) {
-  document.querySelectorAll('.line-highlight').forEach(el => {
-    el.classList.remove('line-highlight');
-  });
-
-  const match = window.location.hash.match(/^#L(\d+)(?:-L(\d+))?$/);
-  if (!match) return;
-
-  const a = parseInt(match[1], 10);
-  const b = match[2] ? parseInt(match[2], 10) : a;
-  const from = Math.min(a, b);
-  const to = Math.max(a, b);
-
-  for (let i = from; i <= to; i++) {
-    const lnDiv = document.getElementById('L' + i);
-    if (lnDiv) lnDiv.classList.add('line-highlight');
-    const lcDiv = document.getElementById('LC' + i);
-    if (lcDiv) lcDiv.classList.add('line-highlight');
-  }
-
-  if (scroll && match[2]) {
-    const firstLn = document.getElementById('L' + from);
-    if (firstLn) firstLn.scrollIntoView({ block: 'center' });
-  }
-}
-
-window.addEventListener('hashchange', () => highlightLines(true));
-highlightLines(true);
-
 document.querySelectorAll('#line-numbers a').forEach(a => {
   a.addEventListener('click', (e) => {
     if (!e.shiftKey) return;
@@ -103,12 +74,6 @@ function onKey(e) {
   else if (e.key == 'y') {
     navigator.clipboard.writeText(window.location.href);
     showToast(TOAST_URL, 1500);
-  }
-  else if (e.key == 'd' && pasteId) {
-    window.location.href = "/dl/" + pasteId;
-  }
-  else if (e.key == 'q' && pasteId) {
-    window.location.href = "/qr/" + pasteId;
   }
   else if (e.key == 'p') {
     window.location.href = window.location.href.split("?")[0];

@@ -32,7 +32,7 @@ use tower_http::trace::TraceLayer;
 use crate::cache::Cache;
 use crate::errors::Error;
 use crate::handlers::extract::Theme;
-use crate::handlers::{delete, download, html, insert, raw, robots, theme};
+use crate::handlers::{html, insert, raw, robots};
 use crate::i18n::Lang;
 use wastebin_core::db::Database;
 
@@ -212,9 +212,7 @@ fn make_app(state: AppState, timeout: Duration, max_body_size: usize) -> Router 
         )
         .route("/", get(html::index::get).post(insert::api::post))
         .route("/robots.txt", get(robots::get))
-        .route("/theme", get(theme::get))
         .route("/new", post(insert::form::post))
-        .route("/qr/{id}", get(html::qr::get))
         .route(
             "/md/{id}",
             get(html::rendered::get).post(html::rendered::get),
@@ -224,12 +222,9 @@ fn make_app(state: AppState, timeout: Duration, max_body_size: usize) -> Router 
             "/{id}",
             get(html::paste::get)
                 .post(html::paste::get)
-                .delete(delete::api::delete),
         )
-        .route("/dl/{id}", get(download::get))
         .route("/raw/{id}", get(raw::get))
-        .route("/delete/{id}", post(delete::form::delete))
-        .layer(
+                .layer(
             ServiceBuilder::new()
                 .layer(DefaultBodyLimit::max(max_body_size))
                 .layer(CompressionLayer::new())

@@ -1,11 +1,8 @@
-pub mod delete;
-pub mod download;
 pub mod extract;
 pub mod html;
 pub mod insert;
 pub mod raw;
 pub mod robots;
-pub mod theme;
 
 use axum_extra::extract::cookie::{Cookie, SameSite};
 
