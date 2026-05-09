@@ -5,7 +5,7 @@ use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 
 use crate::cache::{Key, Mode};
-use crate::handlers::extract::{Theme, Uid};
+use crate::handlers::extract::Theme;
 use crate::handlers::html::{BurnConfirmation, ErrorResponse, PasswordInput, make_error};
 use crate::i18n::Lang;
 use crate::{Cache, Database, Highlighter, Page};
@@ -35,7 +35,6 @@ pub(crate) struct Paste {
     key: Key,
     theme: Option<Theme>,
     lang: Lang,
-    can_delete: bool,
     /// If the paste still in the database and can be fetched with another request.
     is_available: bool,
     /// Expiration in case it was set.
@@ -58,7 +57,6 @@ pub async fn get<E>(
     State(db): State<Database>,
     State(highlighter): State<Highlighter>,
     Path(id): Path<String>,
-    uid: Option<Uid>,
     theme: Option<Theme>,
     lang: Lang,
     form: Result<Form<PasteForm>, E>,
@@ -107,15 +105,10 @@ pub async fn get<E>(
 
         let Data { text, metadata } = data;
         let Metadata {
-            uid: owner_uid,
             title,
             expiration,
             ..
         } = metadata;
-
-        let can_delete = uid
-            .zip(owner_uid)
-            .is_some_and(|(Uid(user_uid), owner_uid)| user_uid == owner_uid);
 
         let html = if let Some(html) = cache.get(&key, Mode::Source) {
             tracing::trace!(?key, "found cached item");
@@ -140,7 +133,6 @@ pub async fn get<E>(
             key,
             theme: theme.clone(),
             lang,
-            can_delete,
             is_available,
             expiration,
             html,
