@@ -2,26 +2,8 @@ function $(id) {
   return document.getElementById(id);
 }
 
-const lineNumbers = $("line-numbers");
 const textarea = $("text");
-
-function updateLineNumbers() {
-  const count = Math.max(1, textarea.value.split("\n").length);
-  let html = "";
-  for (let i = 1; i <= count; i++) {
-    html += "<div>" + i + "</div>";
-  }
-  lineNumbers.innerHTML = html;
-}
-
-function syncScroll() {
-  lineNumbers.scrollTop = textarea.scrollTop;
-}
-
-textarea.addEventListener("input", updateLineNumbers);
-textarea.addEventListener("scroll", syncScroll);
-updateLineNumbers();
-
+const preview = $("preview");
 const stats = $("stats");
 const MAX_BYTES = parseInt(stats.dataset.maxBytes, 10) || 1024 * 1024;
 const UNIT_KB = stats.dataset.unitKb;
@@ -45,22 +27,13 @@ function updateStats() {
   $("stat-lines").textContent = lines;
   $("stat-chars").textContent = chars;
   $("stat-bytes").textContent = bytes.toLocaleString();
+  $("progress-kb").textContent = (bytes / 1024).toFixed(1) + " " + UNIT_KB;
 
   const pct = Math.min(100, (bytes / MAX_BYTES) * 100);
   const fill = $("progress-fill");
   fill.style.width = pct + "%";
-  if (pct > 85) {
-    fill.classList.add("warn");
-  } else {
-    fill.classList.remove("warn");
-  }
-  $("progress-kb").textContent = (bytes / 1024).toFixed(1) + " " + UNIT_KB;
+  fill.classList.toggle("warn", pct > 85);
 }
-
-textarea.addEventListener("input", updateStats);
-updateStats();
-
-const preview = $("preview");
 
 function escapeHtml(value) {
   return value.replace(/[&<>"']/g, function(ch) {
@@ -84,7 +57,7 @@ function inlineMarkdown(value) {
 
 function renderPreview(text) {
   if (!text.trim()) {
-    preview.innerHTML = '<p class="preview-empty">Markdown and code preview</p>';
+    preview.innerHTML = '<p class="preview-empty">Nothing to preview yet.</p>';
     return;
   }
 
@@ -92,71 +65,92 @@ function renderPreview(text) {
   const html = [];
   let paragraph = [];
   let code = [];
+  let inCode = false;
   let codeLang = "";
+  let listOpen = false;
+
+  function closeList() {
+    if (listOpen) {
+      html.push("</ul>");
+      listOpen = false;
+    }
+  }
 
   function flushParagraph() {
     if (paragraph.length > 0) {
+      closeList();
       html.push("<p>" + inlineMarkdown(paragraph.join(" ")) + "</p>");
       paragraph = [];
     }
   }
 
   function flushCode() {
-    const langClass = codeLang ? ' language-' + escapeHtml(codeLang) : "";
+    const langClass = codeLang ? " language-" + escapeHtml(codeLang) : "";
     html.push('<pre class="code-block' + langClass + '"><code>' + escapeHtml(code.join("\n")) + "</code></pre>");
     code = [];
     codeLang = "";
+    inCode = false;
   }
 
   for (const line of lines) {
-    const fence = line.match(/^```\s*([A-Za-z0-9_-]+)?\s*$/);
-    if (fence && codeLang === "" && code.length === 0) {
+    const fence = line.match(/^```\s*([A-Za-z0-9_+#.-]+)?\s*$/);
+    if (fence && !inCode) {
       flushParagraph();
-      codeLang = fence[1] || "plain";
+      closeList();
+      inCode = true;
+      codeLang = fence[1] || "";
       continue;
     }
-    if (fence && (codeLang !== "" || code.length > 0)) {
+    if (fence && inCode) {
       flushCode();
       continue;
     }
-    if (codeLang !== "" || code.length > 0) {
+    if (inCode) {
       code.push(line);
       continue;
     }
 
     if (line.trim() === "") {
       flushParagraph();
-    } else if (/^#{1,3}\s+/.test(line)) {
+      closeList();
+    } else if (/^#{1,6}\s+/.test(line)) {
       flushParagraph();
+      closeList();
       const level = line.match(/^#+/)[0].length;
-      html.push("<h" + level + ">" + inlineMarkdown(line.replace(/^#{1,3}\s+/, "")) + "</h" + level + ">");
+      html.push("<h" + level + ">" + inlineMarkdown(line.replace(/^#{1,6}\s+/, "")) + "</h" + level + ">");
+    } else if (/^[-*]\s+/.test(line)) {
+      flushParagraph();
+      if (!listOpen) {
+        html.push("<ul>");
+        listOpen = true;
+      }
+      html.push("<li>" + inlineMarkdown(line.replace(/^[-*]\s+/, "")) + "</li>");
     } else {
       paragraph.push(line.trim());
     }
   }
 
   flushParagraph();
-  if (codeLang !== "" || code.length > 0) flushCode();
+  closeList();
+  if (inCode) flushCode();
   preview.innerHTML = html.join("");
 }
 
-textarea.addEventListener("input", function() {
+function updateAll() {
+  updateStats();
   renderPreview(textarea.value);
-});
-renderPreview(textarea.value);
+}
 
-const encryptToggle = $("encrypt-toggle");
-const passwordGroup = $("password-group");
+textarea.addEventListener("input", updateAll);
+updateAll();
 
-if (encryptToggle && passwordGroup) {
-  encryptToggle.addEventListener("change", function() {
-    if (encryptToggle.checked) {
-      passwordGroup.classList.add("shown");
-      $("password").focus();
-    } else {
-      passwordGroup.classList.remove("shown");
-      $("password").value = "";
-    }
+for (const button of document.querySelectorAll(".tab-button")) {
+  button.addEventListener("click", function() {
+    for (const tab of document.querySelectorAll(".tab-button")) tab.classList.remove("active");
+    for (const panel of document.querySelectorAll(".tab-panel")) panel.classList.remove("active");
+    button.classList.add("active");
+    $("tab-" + button.dataset.tab).classList.add("active");
+    if (button.dataset.tab === "preview") renderPreview(textarea.value);
   });
 }
 
@@ -169,9 +163,8 @@ $("burn-after-reading").addEventListener("change", function() {
 });
 
 const overlay = $("drop-overlay");
-let dragCounter = 0;
-
 const editorWrap = $("editor-wrap");
+let dragCounter = 0;
 
 editorWrap.addEventListener("dragenter", function(e) {
   e.preventDefault();
@@ -196,22 +189,15 @@ editorWrap.addEventListener("drop", function(e) {
   e.preventDefault();
   dragCounter = 0;
   overlay.classList.remove("active");
-
   const files = e.dataTransfer && e.dataTransfer.files;
-  if (files && files.length > 0) {
-    loadFile(files[0]);
-  }
+  if (files && files.length > 0) loadFile(files[0]);
 });
 
 function loadFile(file) {
   file.text().then(function(value) {
     textarea.value = value.replace(/\n$/, "");
-    updateLineNumbers();
-    updateStats();
-    renderPreview(textarea.value);
-
-    // Set title to filename
     $("title").value = file.name;
+    updateAll();
   });
 }
 
@@ -226,11 +212,7 @@ $("open").addEventListener("click", function() {
 });
 
 textarea.addEventListener("keydown", function(e) {
-  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-    e.preventDefault();
-    $("form").submit();
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+  if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "Enter")) {
     e.preventDefault();
     $("form").submit();
   }

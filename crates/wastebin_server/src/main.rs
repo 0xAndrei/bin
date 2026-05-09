@@ -212,6 +212,8 @@ fn make_app(state: AppState, timeout: Duration, max_body_size: usize) -> Router 
         )
         .route("/", get(html::index::get).post(insert::api::post))
         .route("/lang", get(html::lang::get))
+        .route("/langs", get(html::lang::get))
+        .route("/how", get(html::how::get))
         .route("/robots.txt", get(robots::get))
         .route("/new", post(insert::form::post))
         .route(

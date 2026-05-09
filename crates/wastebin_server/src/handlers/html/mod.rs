@@ -1,4 +1,5 @@
 pub mod burn;
+pub mod how;
 pub mod index;
 pub mod lang;
 pub mod paste;

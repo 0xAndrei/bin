@@ -12,25 +12,19 @@
   </head>
   <body{% block body_attrs %}{% endblock %}>
     {% block body %}
-    <div id="main-container">
-      <header>
-        <div class="nav-group">
-          <a href="/" class="nav-button" title="{{ lang.t("nav.home") }}" aria-label="{{ lang.t("nav.home") }}">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-          </a>
-          {% block title %}{% endblock %}
-        </div>
-        <div class="nav-group">
-          {% block nav_actions %}{% endblock %}
-          </div>
-      </header>
-      <div id="content-area">
-        <main>
-          {% block content %}{% endblock %}
-        </main>
-        {% block panel %}{% endblock %}
-      </div>
-    </div>
+    <header class="site-header">
+      <a class="brand" href="/">x0.ax</a>
+      <nav class="site-nav">
+        <a href="/">new</a>
+        <a href="/how">how</a>
+        <a href="/langs">langs</a>
+        {% block nav_actions %}{% endblock %}
+      </nav>
+    </header>
+    <main class="page-shell">
+      {% block title %}{% endblock %}
+      {% block content %}{% endblock %}
+    </main>
     {% endblock %}
     <div id="toast" class="toast hidden"></div>
     {% block overlay %}{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}
+<h1 class="page-title">Markdown cheatsheet</h1>
+{% endblock %}
+
+{% block content %}
+<article class="doc-page markdown-body">
+  <p>x0.ax publishes Markdown directly. You can mix prose, links, lists, images, tables, and fenced code blocks in the same page.</p>
+
+  <h2>Text</h2>
+  <pre class="code-block"><code># Header 1
+## Header 2
+
+*italic*
+**bold**
+~~strike~~
+`inline code`</code></pre>
+
+  <h2>Lists</h2>
+  <pre class="code-block"><code>- item
+    - nested item
+
+1. first
+2. second
+
+- [ ] open task
+- [x] done task</code></pre>
+
+  <h2>Code Blocks</h2>
+  <p>Put the language token after the opening triple backticks. See <a href="/langs">supported languages</a>.</p>
+  <pre class="code-block"><code>```rust
+fn main() {
+    println!("hello");
+}
+```</code></pre>
+
+  <h2>Links And Tables</h2>
+  <pre class="code-block"><code>[x0.ax](https://x0.ax)
+
+| name | value |
+| ---- | ----- |
+| one  | two   |</code></pre>
+</article>
+{% endblock %}
