@@ -241,11 +241,8 @@ where
     type Rejection = Infallible;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        Ok(parts
-            .headers
-            .get(http::header::ACCEPT_LANGUAGE)
-            .and_then(|v| v.to_str().ok())
-            .map_or_else(Lang::default, lang_from_accept_language))
+        let _ = parts;
+        Ok(Lang::En)
     }
 }
 

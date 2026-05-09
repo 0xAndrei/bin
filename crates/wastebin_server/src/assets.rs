@@ -77,14 +77,10 @@ impl Asset {
     }
 }
 
-/// Collection of light and dark CSS and main UI style CSS derived from them.
+/// Collection of static CSS assets.
 pub(crate) struct Css {
     /// Main UI CSS stylesheet.
     pub style: Asset,
-    /// Light theme colors.
-    pub light: Asset,
-    /// Dark theme colors.
-    pub dark: Asset,
     /// Overrides applied when JavaScript is disabled.
     pub no_js: Asset,
 }
@@ -92,17 +88,12 @@ pub(crate) struct Css {
 impl Css {
     /// Create CSS assets for `theme`.
     pub fn new(theme: Theme) -> Self {
-        let style = Asset::new_hashed("style", Kind::Css, include_str!("style.css").into());
-        let light = Asset::new_hashed("light", Kind::Css, theme.light_css());
-        let dark = Asset::new_hashed("dark", Kind::Css, theme.dark_css());
+        let mut stylesheet = theme.dark_css();
+        stylesheet.extend_from_slice(include_str!("style.css").as_bytes());
+        let style = Asset::new_hashed("style", Kind::Css, stylesheet);
         let no_js = Asset::new_hashed("no-js", Kind::Css, include_str!("no-js.css").into());
 
-        Self {
-            style,
-            light,
-            dark,
-            no_js,
-        }
+        Self { style, no_js }
     }
 }
 

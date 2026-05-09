@@ -16,6 +16,7 @@ use wastebin_core::db::{Database, write};
 pub(crate) struct Entry {
     pub text: String,
     pub extension: Option<String>,
+    pub path: String,
     pub expires: Option<String>,
     pub password: String,
     pub title: String,
@@ -34,14 +35,45 @@ impl From<Entry> for write::Entry {
 
         Self {
             text: entry.text,
-            extension: entry.extension,
+            extension: entry.extension.filter(|value| !value.is_empty()),
             expires,
             burn_after_reading,
             uid: None,
             password,
             title,
+            path: normalize_custom_path(&entry.path),
         }
     }
+}
+
+pub(crate) fn normalize_custom_path(value: &str) -> Option<String> {
+    let value = value.trim().trim_matches('/');
+    if value.is_empty() {
+        return None;
+    }
+
+    let reserved = [
+        "assets",
+        "burn",
+        "delete",
+        "dl",
+        "favicon.ico",
+        "lang",
+        "md",
+        "new",
+        "raw",
+        "robots.txt",
+        "theme",
+    ];
+
+    let valid = (3..=64).contains(&value.len())
+        && !reserved.contains(&value)
+        && value.parse::<wastebin_core::id::Id>().is_err()
+        && value
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_');
+
+    valid.then(|| value.to_string())
 }
 
 pub async fn post<E: std::fmt::Debug>(
@@ -56,6 +88,11 @@ pub async fn post<E: std::fmt::Debug>(
     let Ok(Form(entry)) = entry else {
         return Err(make_error(crate::Error::MalformedForm, page, theme, lang));
     };
+    if !entry.path.trim().trim_matches('/').is_empty()
+        && normalize_custom_path(&entry.path).is_none()
+    {
+        return Err(make_error(crate::Error::InvalidPath, page, theme, lang));
+    }
 
     async {
         // Use cookie uid or generate a new one.

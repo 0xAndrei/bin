@@ -6,7 +6,6 @@ use url::Url;
 
 use crate::cache::Key;
 use crate::handlers::extract::Theme;
-use crate::handlers::html::paste::is_markdown_ext;
 use crate::handlers::html::{ErrorResponse, make_error};
 use crate::i18n::Lang;
 use crate::{Error, Page};
@@ -23,12 +22,13 @@ pub async fn get(
     lang: Lang,
 ) -> Result<Qr, ErrorResponse> {
     async {
-        let key: Key = id.parse()?;
+        let key = Key::from_path(&db, &id).await?;
 
         let code = {
             let page = page.clone();
 
-            tokio::task::spawn_blocking(move || code_from(&page.base_url, &id))
+            let url_path = key.to_string();
+            tokio::task::spawn_blocking(move || code_from(&page.base_url, &url_path))
                 .await
                 .map_err(Error::from)??
         };
@@ -39,7 +39,7 @@ pub async fn get(
             ..
         } = db.get_metadata(key.id).await?;
 
-        let is_markdown = is_markdown_ext(key.ext.as_deref());
+        let is_markdown = true;
 
         Ok(Qr {
             page: page.clone(),

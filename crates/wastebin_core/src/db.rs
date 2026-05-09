@@ -27,6 +27,8 @@ pub enum Error {
     NoPassword,
     #[error("entry not found")]
     NotFound,
+    #[error("custom URL ending already exists")]
+    PathExists,
     #[error("join error: {0}")]
     Join(#[from] tokio::task::JoinError),
     #[error("crypto error: {0}")]
@@ -69,6 +71,10 @@ enum Command {
     GetMetadata {
         id: Id,
         result: oneshot::Sender<Result<Metadata, Error>>,
+    },
+    ResolvePath {
+        path: String,
+        result: oneshot::Sender<Result<(Id, Option<String>), Error>>,
     },
     Delete {
         id: Id,
@@ -121,6 +127,8 @@ pub mod write {
         pub text: String,
         /// File extension
         pub extension: Option<String>,
+        /// Optional custom URL path.
+        pub path: Option<String>,
         /// Expiration in seconds from now
         pub expires: Option<NonZeroU32>,
         /// Delete if read
@@ -379,6 +387,7 @@ impl Handler {
             M::up(include_str!("migrations/0005-drop-text-column.sql")),
             M::up(include_str!("migrations/0006-add-nonce-column.sql")),
             M::up(include_str!("migrations/0007-add-title-column.sql")),
+            M::up(include_str!("migrations/0008-add-path-and-extension.sql")),
         ]);
 
         migrations.to_latest(&mut conn)?;
@@ -408,6 +417,11 @@ impl Handler {
                 Command::GetMetadata { id, result } => {
                     result
                         .send(self.get_metadata(id))
+                        .map_err(|_| Error::ResultSendError)?;
+                }
+                Command::ResolvePath { path, result } => {
+                    result
+                        .send(self.resolve_path(&path))
                         .map_err(|_| Error::ResultSendError)?;
                 }
                 Command::Delete { id, result } => {
@@ -450,6 +464,8 @@ impl Handler {
     ) -> Result<(Id, write::Entry), Error> {
         let mut counter = 0;
         let title = entry.title.clone();
+        let path = entry.path.clone();
+        let extension = entry.extension.clone();
         let nonce = nonce.as_ref().map(|n| n.as_slice());
 
         loop {
@@ -457,11 +473,11 @@ impl Handler {
 
             let result = match entry.expires {
                 None => self.conn.execute(
-                    "INSERT INTO entries (id, uid, data, burn_after_reading, nonce, title) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                    params![id.to_i64(), entry.uid, data, entry.burn_after_reading, nonce, title],
+                    "INSERT INTO entries (id, uid, data, burn_after_reading, nonce, title, path, extension) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                    params![id.to_i64(), entry.uid, data, entry.burn_after_reading, nonce, title, path, extension],
                 ),
                 Some(expires) => self.conn.execute(
-                    "INSERT INTO entries (id, uid, data, burn_after_reading, nonce, expires, title) VALUES (?1, ?2, ?3, ?4, ?5, datetime('now', ?6), ?7)",
+                    "INSERT INTO entries (id, uid, data, burn_after_reading, nonce, expires, title, path, extension) VALUES (?1, ?2, ?3, ?4, ?5, datetime('now', ?6), ?7, ?8, ?9)",
                     params![
                         id.to_i64(),
                         entry.uid,
@@ -470,6 +486,8 @@ impl Handler {
                         nonce,
                         format!("{expires} seconds"),
                         title,
+                        path,
+                        extension,
                     ],
                 ),
             };
@@ -489,6 +507,17 @@ impl Handler {
                     counter += 1;
                     continue;
                 }
+                Err(rusqlite::Error::SqliteFailure(
+                    rusqlite::ffi::Error {
+                        code,
+                        extended_code,
+                    },
+                    Some(ref _message),
+                )) if code == rusqlite::ErrorCode::ConstraintViolation
+                    && extended_code == rusqlite::ffi::SQLITE_CONSTRAINT_UNIQUE =>
+                {
+                    return Err(Error::PathExists);
+                }
                 Err(err) => break Err(err)?,
                 Ok(rows) => {
                     debug_assert!(rows == 1);
@@ -496,6 +525,16 @@ impl Handler {
                 }
             }
         }
+    }
+
+    fn resolve_path(&self, path: &str) -> Result<(Id, Option<String>), Error> {
+        self.conn
+            .query_row(
+                "SELECT id, extension FROM entries WHERE path=?1",
+                params![path],
+                |row| Ok((Id::from(row.get::<_, i64>(0)?), row.get(1)?)),
+            )
+            .map_err(Error::from)
     }
 
     fn get_metadata(&self, id: Id) -> Result<Metadata, Error> {
@@ -697,6 +736,16 @@ impl Database {
         let (result, command_result) = oneshot::channel();
         self.sender
             .send(Command::GetMetadata { id, result })
+            .await
+            .map_err(|_| Error::SendError)?;
+        command_result.await?
+    }
+
+    /// Resolve a custom URL path to its paste id and stored extension.
+    pub async fn resolve_path(&self, path: String) -> Result<(Id, Option<String>), Error> {
+        let (result, command_result) = oneshot::channel();
+        self.sender
+            .send(Command::ResolvePath { path, result })
             .await
             .map_err(|_| Error::SendError)?;
         command_result.await?

@@ -52,7 +52,7 @@ impl Assets {
     fn new(theme: Theme) -> Self {
         Self {
             favicon: Asset::new(
-                "favicon.ico",
+                "favicon.png",
                 mime::IMAGE_PNG,
                 include_bytes!("../../../assets/favicon.png").to_vec(),
             ),

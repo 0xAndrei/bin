@@ -7,21 +7,23 @@ use crate::handlers::extract::Theme;
 use crate::handlers::html::qr::{code_from, dark_modules};
 use crate::handlers::html::{ErrorResponse, make_error};
 use crate::i18n::Lang;
-use crate::{Error, Page};
+use crate::{Database, Error, Page};
 
 /// GET handler for the burn page.
 pub async fn get(
     Path(id): Path<String>,
     State(page): State<Page>,
+    State(db): State<Database>,
     theme: Option<Theme>,
     lang: Lang,
 ) -> Result<Burn, ErrorResponse> {
     async {
-        let key: Key = id.parse()?;
+        let key = Key::from_path(&db, &id).await?;
 
         let code = tokio::task::spawn_blocking({
             let page = page.clone();
-            move || code_from(&page.base_url, &id)
+            let url_path = key.to_string();
+            move || code_from(&page.base_url, &url_path)
         })
         .await
         .map_err(Error::from)??;

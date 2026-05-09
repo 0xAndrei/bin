@@ -8,22 +8,23 @@
   --fs-base: 1rem;
   --fs-xl: 3rem;
 
-  --page-bg: light-dark(#fafaf8, #0f1115);
-  --panel-bg: light-dark(#ffffff, #14171c);
-  --panel-bg2: light-dark(#f4f4f1, #181c23);
-  --fg: light-dark(#1a1d22, #d6d9df);
-  --fg-dim: light-dark(#4a5059, #a8aeb8);
-  --fg-muted: light-dark(#6b717b, #8e95a0);
-  --gutter-bg: light-dark(#f4f4f1, #0f1115);
-  --gutter-fg: light-dark(#8a919c, #5a616b);
-  --border: light-dark(#d8d7d1, #2a3038);
-  --border-soft: light-dark(#ecebe6, #1b1f26);
-  --accent: light-dark(oklch(0.72 0.02 250), oklch(0.80 0.02 250));
-  --accent-bg: light-dark(oklch(0.72 0.02 250 / 0.18), oklch(0.80 0.02 250 / 0.22));
-  --accent-bg-gutter: light-dark(oklch(0.72 0.02 250 / 0.24), oklch(0.80 0.02 250 / 0.28));
-  --accent-fg: light-dark(oklch(0.38 0.14 220), oklch(0.88 0.09 220));
-  --danger: light-dark(oklch(0.52 0.18 25), oklch(0.70 0.16 25));
-  --danger-bg: light-dark(oklch(0.52 0.18 25 / 0.08), oklch(0.70 0.16 25 / 0.12));
+  color-scheme: dark;
+  --page-bg: #090a0d;
+  --panel-bg: #111318;
+  --panel-bg2: #181b22;
+  --fg: #e4e7eb;
+  --fg-dim: #b7bdc7;
+  --fg-muted: #858d99;
+  --gutter-bg: #0c0e12;
+  --gutter-fg: #646c78;
+  --border: #2d333d;
+  --border-soft: #1f242d;
+  --accent: #d8dde6;
+  --accent-bg: rgba(216, 221, 230, 0.14);
+  --accent-bg-gutter: rgba(216, 221, 230, 0.18);
+  --accent-fg: #ffffff;
+  --danger: #ff8f8f;
+  --danger-bg: rgba(255, 143, 143, 0.12);
 
   /* keep for syntax highlighting compat */
   --main-accent-color: var(--accent);
@@ -291,6 +292,30 @@ header {
 
 .input-base::placeholder {
   color: var(--fg-muted);
+}
+
+.url-input-wrap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--fg-muted);
+}
+
+.url-input-wrap .input-base {
+  min-width: 0;
+}
+
+.panel-link {
+  display: inline-flex;
+  margin: -2px 0 8px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
 }
 
 .lang-filter {
@@ -607,46 +632,69 @@ header {
   border-color: var(--border);
 }
 
-.nav-group .theme-switcher {
-  margin-left: 6px;
+.language-page {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 28px 24px 64px;
 }
 
-.theme-switcher {
-  display: flex;
-  gap: 2px;
-  background: var(--panel-bg2);
-  border-radius: 4px;
-  padding: 2px;
+.language-intro {
+  max-width: 760px;
+  margin-bottom: 24px;
 }
 
-.theme-opt {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 5px 8px;
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--fg-muted);
-  cursor: pointer;
+.language-intro h1 {
+  margin: 0 0 10px;
+  font-size: 1.65rem;
+  font-weight: 650;
 }
 
-.theme-opt:hover {
+.language-intro p {
+  margin: 0 0 14px;
   color: var(--fg-dim);
 }
 
-.theme-opt.active {
-  background: var(--panel-bg);
-  color: var(--fg);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+.language-intro pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow: auto;
+  border: 1px solid var(--border-soft);
+  background: var(--panel-bg2);
+  border-radius: 6px;
 }
 
-.theme-opt svg {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
+.language-intro code,
+.language-item code {
+  font-family: var(--font-mono);
+}
+
+.language-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1px;
+  border: 1px solid var(--border-soft);
+  background: var(--border-soft);
+}
+
+.language-item {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 11px;
+  background: var(--panel-bg);
+  font-size: var(--fs-sm);
+}
+
+.language-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.language-item code {
+  color: var(--accent);
+  white-space: nowrap;
 }
 
 table {
@@ -1101,36 +1149,28 @@ textarea:focus-visible {
 .markdown-body .markdown-alert-title + * { margin-top: 0; }
 
 .markdown-body .markdown-alert-note {
-  border-left-color: light-dark(oklch(0.52 0.14 250), oklch(0.72 0.14 250));
-  background: light-dark(oklch(0.52 0.14 250 / 0.08), oklch(0.72 0.14 250 / 0.12));
+  border-left-color: #9db8ff;
+  background: rgba(157, 184, 255, 0.12);
 }
-.markdown-body .markdown-alert-note .markdown-alert-title {
-  color: light-dark(oklch(0.42 0.14 250), oklch(0.82 0.12 250));
-}
+.markdown-body .markdown-alert-note .markdown-alert-title { color: #c3d2ff; }
 
 .markdown-body .markdown-alert-tip {
-  border-left-color: light-dark(oklch(0.52 0.15 150), oklch(0.72 0.15 150));
-  background: light-dark(oklch(0.52 0.15 150 / 0.08), oklch(0.72 0.15 150 / 0.12));
+  border-left-color: #8bd6b0;
+  background: rgba(139, 214, 176, 0.12);
 }
-.markdown-body .markdown-alert-tip .markdown-alert-title {
-  color: light-dark(oklch(0.42 0.15 150), oklch(0.82 0.13 150));
-}
+.markdown-body .markdown-alert-tip .markdown-alert-title { color: #b8ebd0; }
 
 .markdown-body .markdown-alert-important {
-  border-left-color: light-dark(oklch(0.52 0.17 300), oklch(0.72 0.16 300));
-  background: light-dark(oklch(0.52 0.17 300 / 0.08), oklch(0.72 0.16 300 / 0.12));
+  border-left-color: #d6a8ff;
+  background: rgba(214, 168, 255, 0.12);
 }
-.markdown-body .markdown-alert-important .markdown-alert-title {
-  color: light-dark(oklch(0.42 0.17 300), oklch(0.82 0.14 300));
-}
+.markdown-body .markdown-alert-important .markdown-alert-title { color: #e5caff; }
 
 .markdown-body .markdown-alert-warning {
-  border-left-color: light-dark(oklch(0.58 0.15 75), oklch(0.78 0.15 75));
-  background: light-dark(oklch(0.58 0.15 75 / 0.08), oklch(0.78 0.15 75 / 0.12));
+  border-left-color: #ffd479;
+  background: rgba(255, 212, 121, 0.12);
 }
-.markdown-body .markdown-alert-warning .markdown-alert-title {
-  color: light-dark(oklch(0.48 0.15 75), oklch(0.85 0.14 75));
-}
+.markdown-body .markdown-alert-warning .markdown-alert-title { color: #ffe3a6; }
 
 .markdown-body .markdown-alert-caution {
   border-left-color: var(--danger);
@@ -1219,7 +1259,4 @@ textarea:focus-visible {
     width: 100%;
   }
 
-  .theme-switcher span {
-    display: none;
-  }
 }

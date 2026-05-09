@@ -15,8 +15,8 @@ pub async fn delete(
     lang: Lang,
 ) -> Result<Redirect, ErrorResponse> {
     async {
-        let id = id.parse()?;
-        db.delete_for(id, uid).await?;
+        let key = crate::cache::Key::from_path(&db, &id).await?;
+        db.delete_for(key.id, uid).await?;
         Ok(Redirect::to("/"))
     }
     .await

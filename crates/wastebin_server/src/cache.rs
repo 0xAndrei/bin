@@ -7,6 +7,7 @@ use cached::{Cached, SizedCache};
 
 use crate::errors::Error;
 
+use wastebin_core::db::Database;
 use wastebin_core::id::Id;
 use wastebin_highlight::Html;
 
@@ -14,6 +15,7 @@ use wastebin_highlight::Html;
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct Key {
     pub id: Id,
+    pub path: String,
     pub ext: Option<String>,
 }
 
@@ -78,14 +80,39 @@ impl Key {
     pub fn id(&self) -> String {
         self.id.to_string()
     }
+
+    pub async fn from_path(db: &Database, value: &str) -> Result<Self, Error> {
+        let (base, ext) = value
+            .split_once('.')
+            .map_or((value, None), |(base, ext)| (base, Some(ext.to_string())));
+
+        if let Ok(id) = base.parse() {
+            return Ok(Self {
+                id,
+                path: base.to_string(),
+                ext,
+            });
+        }
+
+        let (id, stored_ext) = db.resolve_path(base.to_string()).await?;
+        Ok(Self {
+            id,
+            path: base.to_string(),
+            ext: ext.or(stored_ext),
+        })
+    }
 }
 
 impl Display for Key {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(ext) = &self.ext {
-            write!(f, "{}.{}", self.id, ext)
+            if self.path == self.id.to_string() {
+                write!(f, "{}.{}", self.path, ext)
+            } else {
+                write!(f, "{}", self.path)
+            }
         } else {
-            write!(f, "{}", self.id)
+            write!(f, "{}", self.path)
         }
     }
 }
@@ -99,7 +126,11 @@ impl FromStr for Key {
             Some((id, ext)) => (id.parse().map_err(Error::Id)?, Some(ext.to_string())),
         };
 
-        Ok(Self { id, ext })
+        Ok(Self {
+            id,
+            path: id.to_string(),
+            ext,
+        })
     }
 }
 

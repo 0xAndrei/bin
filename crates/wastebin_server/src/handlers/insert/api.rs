@@ -11,6 +11,7 @@ use wastebin_core::db::{Database, write};
 pub(crate) struct Entry {
     pub text: String,
     pub extension: Option<String>,
+    pub path: Option<String>,
     pub expires: Option<NonZeroU32>,
     pub burn_after_reading: Option<bool>,
     pub password: Option<String>,
@@ -26,12 +27,16 @@ impl From<Entry> for write::Entry {
     fn from(entry: Entry) -> Self {
         Self {
             text: entry.text,
-            extension: entry.extension,
+            extension: entry.extension.filter(|value| !value.is_empty()),
             expires: entry.expires,
             burn_after_reading: entry.burn_after_reading,
             uid: None,
             password: entry.password,
             title: entry.title,
+            path: entry
+                .path
+                .as_deref()
+                .and_then(super::form::normalize_custom_path),
         }
     }
 }
@@ -40,6 +45,15 @@ pub async fn post(
     State(db): State<Database>,
     Json(entry): Json<Entry>,
 ) -> Result<Json<RedirectResponse>, JsonErrorResponse> {
+    if entry
+        .path
+        .as_deref()
+        .is_some_and(|path| !path.trim().trim_matches('/').is_empty()
+            && super::form::normalize_custom_path(path).is_none())
+    {
+        return Err(Error::InvalidPath.into());
+    }
+
     let entry: write::Entry = entry.into();
     let (id, entry) = db.insert(entry).await.map_err(Error::Database)?;
     let path = format!("/{}", id.to_url_path(&entry));

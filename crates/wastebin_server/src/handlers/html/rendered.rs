@@ -47,7 +47,7 @@ pub async fn get<E>(
             .ok()
             .map(|form| Password::from(form.password.as_bytes().to_vec()));
         let no_password = password.is_none();
-        let key: Key = id.parse()?;
+        let key = Key::from_path(&db, &id).await?;
 
         let (data, is_available) = match db.get(key.id, password).await {
             Ok(Entry::Regular(data)) => (data, true),
@@ -57,7 +57,7 @@ pub async fn get<E>(
                     page: page.clone(),
                     theme: theme.clone(),
                     lang,
-                    id,
+                    id: key.to_string(),
                 }
                 .into_response());
             }

@@ -32,7 +32,7 @@ use tower_http::trace::TraceLayer;
 use crate::cache::Cache;
 use crate::errors::Error;
 use crate::handlers::extract::Theme;
-use crate::handlers::{html, insert, raw, robots};
+use crate::handlers::{delete, download, html, insert, raw, robots};
 use crate::i18n::Lang;
 use wastebin_core::db::Database;
 
@@ -179,16 +179,12 @@ fn make_app(state: AppState, timeout: Duration, max_body_size: usize) -> Router 
             get(async |State(page): State<Page>| page.assets.favicon.clone()),
         )
         .route(
+            "/favicon.ico",
+            get(async |State(page): State<Page>| page.assets.favicon.clone()),
+        )
+        .route(
             state.page.assets.css.style.route(),
             get(async |State(page): State<Page>| page.assets.css.style.clone()),
-        )
-        .route(
-            state.page.assets.css.dark.route(),
-            get(async |State(page): State<Page>| page.assets.css.dark.clone()),
-        )
-        .route(
-            state.page.assets.css.light.route(),
-            get(async |State(page): State<Page>| page.assets.css.light.clone()),
         )
         .route(
             state.page.assets.css.no_js.route(),
@@ -211,6 +207,7 @@ fn make_app(state: AppState, timeout: Duration, max_body_size: usize) -> Router 
             get(async |State(page): State<Page>| page.assets.password_toggle_js.clone()),
         )
         .route("/", get(html::index::get).post(insert::api::post))
+        .route("/lang", get(html::lang::get))
         .route("/robots.txt", get(robots::get))
         .route("/new", post(insert::form::post))
         .route(
@@ -218,6 +215,9 @@ fn make_app(state: AppState, timeout: Duration, max_body_size: usize) -> Router 
             get(html::rendered::get).post(html::rendered::get),
         )
         .route("/burn/{id}", get(html::burn::get))
+        .route("/dl/{id}", get(download::get))
+        .route("/qr/{id}", get(html::qr::get))
+        .route("/delete/{id}", post(delete::form::delete))
         .route(
             "/{id}",
             get(html::paste::get)
@@ -250,7 +250,6 @@ async fn start() -> Result<(), Box<dyn std::error::Error>> {
     let base_url = env::base_url()?;
     let timeout = env::http_timeout()?;
     let expirations = env::expiration_set()?;
-    let theme = env::theme()?;
     let title = env::title();
 
     let cache = Cache::new(cache_size);
@@ -264,7 +263,7 @@ async fn start() -> Result<(), Box<dyn std::error::Error>> {
     let page = Arc::new(page::Page::new(
         title,
         base_url,
-        theme,
+        wastebin_highlight::Theme::Ayu,
         expirations,
         max_body_size,
     ));

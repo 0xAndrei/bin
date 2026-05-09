@@ -18,8 +18,6 @@ pub mod vars {
     pub const PASTE_EXPIRATIONS: &str = "WASTEBIN_PASTE_EXPIRATIONS";
     /// Signing key for signed cookie store.
     pub const SIGNING_KEY: &str = "WASTEBIN_SIGNING_KEY";
-    /// Theme to use.
-    pub const THEME: &str = "WASTEBIN_THEME";
     /// Title.
     pub const TITLE: &str = "WASTEBIN_TITLE";
     /// Unix socket path the server binds to.

@@ -70,7 +70,7 @@ pub async fn get<E>(
             .map(|password| Password::from(password.as_bytes().to_vec()));
         let confirmed = form.as_ref().and_then(|form| form.confirm_burn.as_deref()) == Some("1");
         let no_password = password.is_none();
-        let key: Key = id.parse()?;
+        let key = Key::from_path(&db, &id).await?;
 
         let metadata = match db.get_metadata(key.id).await {
             Ok(metadata) => metadata,
@@ -82,7 +82,7 @@ pub async fn get<E>(
                 page: page.clone(),
                 theme: theme.clone(),
                 lang,
-                id,
+                id: key.to_string(),
                 title: metadata.title.clone(),
             }
             .into_response());
@@ -96,7 +96,7 @@ pub async fn get<E>(
                     page: page.clone(),
                     theme: theme.clone(),
                     lang,
-                    id,
+                id: key.to_string(),
                 }
                 .into_response());
             }
@@ -127,7 +127,7 @@ pub async fn get<E>(
             html.into_inner()
         };
 
-        let is_markdown = is_markdown_ext(key.ext.as_deref());
+        let is_markdown = true;
         let paste = Paste {
             page: page.clone(),
             key,

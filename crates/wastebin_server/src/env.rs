@@ -12,7 +12,6 @@ use wastebin_core::env::vars::{
     PASTE_EXPIRATIONS, SIGNING_KEY,
 };
 use wastebin_core::{db, expiration};
-use wastebin_highlight::{Theme, theme::ParseThemeNameError};
 
 pub const DEFAULT_HTTP_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -34,8 +33,6 @@ pub(crate) enum Error {
     HttpTimeout(ParseIntError),
     #[error("failed to parse {PASTE_EXPIRATIONS}: {0}")]
     ParsePasteExpiration(#[from] expiration::Error),
-    #[error("failed to parse theme name")]
-    ParseTheme(#[from] ParseThemeNameError),
     #[error("binding to both TCP and Unix socket is not possible")]
     BothListeners,
 }
@@ -60,10 +57,6 @@ impl Display for SocketType {
 
 pub fn title() -> String {
     std::env::var(vars::TITLE).unwrap_or_else(|_| "0x.ax".to_string())
-}
-
-pub fn theme() -> Result<Theme, Error> {
-    Ok(std::env::var(vars::THEME).map_or_else(|_| Ok(Theme::Ayu), |var| var.parse())?)
 }
 
 pub fn cache_size() -> Result<NonZeroUsize, Error> {

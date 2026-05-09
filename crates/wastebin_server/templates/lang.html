@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}
+  <span class="nav-title">supported languages</span>
+{% endblock %}
+
+{% block content %}
+<div class="language-page">
+  <div class="language-intro">
+    <h1>Supported languages</h1>
+    <p>Use fenced Markdown code blocks with the language token after the opening backticks.</p>
+    <pre><code>```rust
+fn main() {
+    println!("hello");
+}
+```</code></pre>
+  </div>
+
+  <div class="language-grid">
+    {%- for syntax in highlighter.syntaxes() -%}
+      {%- if let Some(extension) = syntax.extensions.first() %}
+      <div class="language-item">
+        <span>{{ syntax.name }}</span>
+        <code>{{ extension }}</code>
+      </div>
+      {%- endif -%}
+    {%- endfor %}
+  </div>
+</div>
+{% endblock %}

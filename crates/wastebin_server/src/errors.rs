@@ -26,6 +26,8 @@ pub(crate) enum Error {
     Id(#[from] id::Error),
     #[error("payload too large")]
     MalformedForm,
+    #[error("custom URL ending must be 3-64 characters and use only letters, numbers, '-' or '_'")]
+    InvalidPath,
 }
 
 #[derive(Serialize)]
@@ -43,10 +45,11 @@ impl From<Error> for StatusCode {
             Error::Database(
                 db::Error::Delete | db::Error::Crypto(crypto::Error::ChaCha20Poly1305Decrypt),
             ) => StatusCode::FORBIDDEN,
+            Error::Database(db::Error::PathExists) => StatusCode::CONFLICT,
             Error::Database(db::Error::NoPassword) | Error::Id(_) | Error::UrlParsing(_) => {
                 StatusCode::BAD_REQUEST
             }
-            Error::MalformedForm => StatusCode::UNPROCESSABLE_ENTITY,
+            Error::MalformedForm | Error::InvalidPath => StatusCode::UNPROCESSABLE_ENTITY,
             Error::Join(_)
             | Error::QrCode(_)
             | Error::Database(_)

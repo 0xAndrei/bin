@@ -23,7 +23,7 @@ pub async fn get(
     password: Option<Password>,
 ) -> Result<Response, ErrorResponse> {
     async {
-        let key: Key = id.parse()?;
+        let key = Key::from_path(&db, &id).await?;
         let password = password.map(|Password(password)| password);
 
         match db.get(key.id, password).await {
@@ -34,7 +34,7 @@ pub async fn get(
                 page: page.clone(),
                 theme: theme.clone(),
                 lang,
-                id: key.id.to_string(),
+                id: key.to_string(),
             }
             .into_response()),
             Err(err) => Err(err.into()),

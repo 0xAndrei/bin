@@ -1,5 +1,6 @@
 pub mod burn;
 pub mod index;
+pub mod lang;
 pub mod paste;
 pub mod qr;
 pub mod rendered;

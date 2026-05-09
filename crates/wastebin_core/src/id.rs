@@ -48,10 +48,14 @@ impl Id {
     /// Generate a URL path from the string representation and `entry`'s extension.
     #[must_use]
     pub fn to_url_path(self, entry: &Entry) -> String {
+        if let Some(path) = &entry.path {
+            return path.clone();
+        }
+
         entry
             .extension
             .as_ref()
-            .map_or_else(|| format!("{self}"), |_| format!("{self}"))
+            .map_or_else(|| format!("{self}"), |ext| format!("{self}.{ext}"))
     }
 }
 
