@@ -3,12 +3,11 @@ use askama_web::WebTemplate;
 use axum::extract::State;
 
 use crate::i18n::Lang;
-use crate::{Highlighter, Page, handlers::extract::Theme};
+use crate::{Page, handlers::extract::Theme};
 
 /// GET handler for the index page.
 pub async fn get(
     State(page): State<Page>,
-    State(highlighter): State<Highlighter>,
     theme: Option<Theme>,
     lang: Lang,
 ) -> Index {
@@ -16,16 +15,14 @@ pub async fn get(
         page,
         theme,
         lang,
-        highlighter,
     }
 }
 
-/// Index page displaying a form for paste insertion and a selection box for languages.
+/// Index page displaying the paste insertion form.
 #[derive(Template, WebTemplate)]
 #[template(path = "index.html")]
 pub(crate) struct Index {
     page: Page,
     theme: Option<Theme>,
     lang: Lang,
-    highlighter: Highlighter,
 }

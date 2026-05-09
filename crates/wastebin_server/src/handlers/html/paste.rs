@@ -13,6 +13,7 @@ use wastebin_core::crypto::Password;
 use wastebin_core::db;
 use wastebin_core::db::read::{Data, Entry, Metadata};
 use wastebin_core::expiration::Expiration;
+use wastebin_highlight::markdown;
 
 #[derive(Deserialize, Debug)]
 pub(crate) struct PasswordForm {
@@ -41,13 +42,8 @@ pub(crate) struct Paste {
     expiration: Option<Expiration>,
     html: String,
     title: Option<String>,
-    /// Whether the paste's extension identifies it as Markdown, enabling the rendered-view toggle.
+    /// Whether the template should show a separate Markdown/source toggle.
     is_markdown: bool,
-}
-
-/// Return `true` if `ext` identifies a Markdown paste.
-pub(crate) fn is_markdown_ext(ext: Option<&str>) -> bool {
-    ext.is_some_and(|ext| matches!(ext.to_ascii_lowercase().as_str(), "md"|"markdown"|"mkd"|"mdown"|"markup"))
 }
 
 #[expect(clippy::too_many_arguments)]
@@ -110,24 +106,24 @@ pub async fn get<E>(
             ..
         } = metadata;
 
-        let html = if let Some(html) = cache.get(&key, Mode::Source) {
-            tracing::trace!(?key, "found cached item");
-            html.into_inner()
+        let html = if let Some(cached) = cache.get(&key, Mode::Rendered) {
+            tracing::trace!(?key, "found cached rendered paste");
+            cached.into_inner()
         } else {
-            let ext = key.ext.clone();
             let highlighter = highlighter.clone();
-            let html =
-                tokio::task::spawn_blocking(move || highlighter.highlight(text, ext)).await??;
+            let rendered =
+                tokio::task::spawn_blocking(move || markdown::render(&text, &highlighter))
+                    .await??;
 
             if is_available && no_password {
-                tracing::trace!(?key, "cache item");
-                cache.put(&key, Mode::Source, html.clone());
+                tracing::trace!(?key, "cache rendered paste");
+                cache.put(&key, Mode::Rendered, rendered.clone());
             }
 
-            html.into_inner()
+            rendered.into_inner()
         };
 
-        let is_markdown = true;
+        let is_markdown = false;
         let paste = Paste {
             page: page.clone(),
             key,

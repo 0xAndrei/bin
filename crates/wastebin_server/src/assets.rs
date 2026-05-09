@@ -86,11 +86,9 @@ pub(crate) struct Css {
 }
 
 impl Css {
-    /// Create CSS assets for `theme`.
-    pub fn new(theme: Theme) -> Self {
-        let mut stylesheet = theme.dark_css();
-        stylesheet.extend_from_slice(include_str!("style.css").as_bytes());
-        let style = Asset::new_hashed("style", Kind::Css, stylesheet);
+    /// Create CSS assets.
+    pub fn new(_theme: Theme) -> Self {
+        let style = Asset::new_hashed("style", Kind::Css, include_str!("style.css").into());
         let no_js = Asset::new_hashed("no-js", Kind::Css, include_str!("no-js.css").into());
 
         Self { style, no_js }

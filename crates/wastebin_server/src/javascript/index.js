@@ -60,17 +60,90 @@ function updateStats() {
 textarea.addEventListener("input", updateStats);
 updateStats();
 
-const langSelect = $("langs");
-const langFilter = $("filter");
+const preview = $("preview");
 
-langFilter.addEventListener("input", function() {
-  const term = langFilter.value.toLowerCase();
-  for (const opt of langSelect.options) {
-    const name = opt.text.toLowerCase();
-    const ext = opt.value.toLowerCase();
-    opt.hidden = !(name.includes(term) || ext.includes(term));
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, function(ch) {
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;"
+    }[ch];
+  });
+}
+
+function inlineMarkdown(value) {
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
+}
+
+function renderPreview(text) {
+  if (!text.trim()) {
+    preview.innerHTML = '<p class="preview-empty">Markdown and code preview</p>';
+    return;
   }
+
+  const lines = text.split("\n");
+  const html = [];
+  let paragraph = [];
+  let code = [];
+  let codeLang = "";
+
+  function flushParagraph() {
+    if (paragraph.length > 0) {
+      html.push("<p>" + inlineMarkdown(paragraph.join(" ")) + "</p>");
+      paragraph = [];
+    }
+  }
+
+  function flushCode() {
+    const langClass = codeLang ? ' language-' + escapeHtml(codeLang) : "";
+    html.push('<pre class="code-block' + langClass + '"><code>' + escapeHtml(code.join("\n")) + "</code></pre>");
+    code = [];
+    codeLang = "";
+  }
+
+  for (const line of lines) {
+    const fence = line.match(/^```\s*([A-Za-z0-9_-]+)?\s*$/);
+    if (fence && codeLang === "" && code.length === 0) {
+      flushParagraph();
+      codeLang = fence[1] || "plain";
+      continue;
+    }
+    if (fence && (codeLang !== "" || code.length > 0)) {
+      flushCode();
+      continue;
+    }
+    if (codeLang !== "" || code.length > 0) {
+      code.push(line);
+      continue;
+    }
+
+    if (line.trim() === "") {
+      flushParagraph();
+    } else if (/^#{1,3}\s+/.test(line)) {
+      flushParagraph();
+      const level = line.match(/^#+/)[0].length;
+      html.push("<h" + level + ">" + inlineMarkdown(line.replace(/^#{1,3}\s+/, "")) + "</h" + level + ">");
+    } else {
+      paragraph.push(line.trim());
+    }
+  }
+
+  flushParagraph();
+  if (codeLang !== "" || code.length > 0) flushCode();
+  preview.innerHTML = html.join("");
+}
+
+textarea.addEventListener("input", function() {
+  renderPreview(textarea.value);
 });
+renderPreview(textarea.value);
 
 const encryptToggle = $("encrypt-toggle");
 const passwordGroup = $("password-group");
@@ -135,21 +208,7 @@ function loadFile(file) {
     textarea.value = value.replace(/\n$/, "");
     updateLineNumbers();
     updateStats();
-
-    // Infer extension from filename
-    const name = file.name || "";
-    const dot = name.lastIndexOf(".");
-    if (dot > 0) {
-      const ext = name.slice(dot + 1).toLowerCase();
-      for (let i = 0; i < langSelect.options.length; i++) {
-        if (langSelect.options[i].value === ext) {
-          langSelect.options[i].selected = true;
-          break;
-        }
-      }
-      langFilter.value = "";
-      langFilter.dispatchEvent(new Event("input"));
-    }
+    renderPreview(textarea.value);
 
     // Set title to filename
     $("title").value = file.name;

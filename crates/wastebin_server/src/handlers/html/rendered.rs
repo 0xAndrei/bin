@@ -24,7 +24,7 @@ pub(crate) struct Rendered {
     theme: Option<Theme>,
     lang: Lang,
     is_available: bool,
-    /// Always `true` for this view; needed by the inherited paste template.
+    /// Whether the template should show a separate Markdown/source toggle.
     is_markdown: bool,
     expiration: Option<Expiration>,
     html: String,
@@ -94,7 +94,7 @@ pub async fn get<E>(
             theme: theme.clone(),
             lang,
             is_available,
-            is_markdown: true,
+            is_markdown: false,
             expiration,
             html,
             title,

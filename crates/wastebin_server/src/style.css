@@ -9,24 +9,26 @@
   --fs-xl: 3rem;
 
   color-scheme: dark;
-  --page-bg: #090a0d;
-  --panel-bg: #111318;
-  --panel-bg2: #181b22;
-  --fg: #e4e7eb;
-  --fg-dim: #b7bdc7;
-  --fg-muted: #858d99;
-  --gutter-bg: #0c0e12;
-  --gutter-fg: #646c78;
-  --border: #2d333d;
-  --border-soft: #1f242d;
-  --accent: #d8dde6;
-  --accent-bg: rgba(216, 221, 230, 0.14);
-  --accent-bg-gutter: rgba(216, 221, 230, 0.18);
+  --page-bg: #131313;
+  --panel-bg: #171717;
+  --panel-bg2: #202020;
+  --fg: #eeeeee;
+  --fg-dim: #c9c9c9;
+  --fg-muted: #8f8f8f;
+  --gutter-bg: #171717;
+  --gutter-fg: #777777;
+  --border: #2b2b2b;
+  --border-soft: #242424;
+  --accent: #d7d7d7;
+  --accent-bg: rgba(215, 215, 215, 0.12);
+  --accent-bg-gutter: rgba(215, 215, 215, 0.16);
   --accent-fg: #ffffff;
   --danger: #ff8f8f;
   --danger-bg: rgba(255, 143, 143, 0.12);
 
   /* keep for syntax highlighting compat */
+  --main-bg-color: var(--page-bg);
+  --main-fg-color: var(--fg);
   --main-accent-color: var(--accent);
   --main-highlight-color: var(--accent);
   --main-line-number-color: var(--gutter-fg);
@@ -316,6 +318,26 @@ header {
   color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 0.16em;
+}
+
+.preview-pane {
+  max-width: none;
+  min-height: 190px;
+  max-height: 340px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  background: var(--panel-bg2);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  font-size: var(--fs-sm);
+}
+
+.preview-pane:empty::before,
+.preview-empty {
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
 }
 
 .lang-filter {
@@ -1122,6 +1144,29 @@ textarea:focus-visible {
   border: none;
   border-radius: 0;
   white-space: pre;
+}
+
+.markdown-body .keyword,
+.markdown-body .storage,
+.markdown-body .entity,
+.markdown-body .support,
+.markdown-body .variable,
+.markdown-body .constant,
+.markdown-body .string,
+.markdown-body .comment,
+.markdown-body .punctuation,
+.markdown-body .meta,
+.source-view .keyword,
+.source-view .storage,
+.source-view .entity,
+.source-view .support,
+.source-view .variable,
+.source-view .constant,
+.source-view .string,
+.source-view .comment,
+.source-view .punctuation,
+.source-view .meta {
+  color: inherit;
 }
 
 .markdown-body blockquote {

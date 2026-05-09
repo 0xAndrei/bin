@@ -39,7 +39,7 @@ pub async fn get(
             ..
         } = db.get_metadata(key.id).await?;
 
-        let is_markdown = true;
+        let is_markdown = false;
 
         Ok(Qr {
             page: page.clone(),

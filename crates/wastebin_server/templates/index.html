@@ -50,21 +50,13 @@
           <div class="panel-label">custom url</div>
           <div class="url-input-wrap">
             <span>x0.ax/</span>
-            <input type="text" name="path" id="path" class="input-base" placeholder="blabla" pattern="[A-Za-z0-9_-]{3,64}" maxlength="64">
+            <input type="text" name="path" id="path" class="input-base" placeholder="custom" pattern="[A-Za-z0-9_-]{3,64}" maxlength="64">
           </div>
         </section>
 
         <section class="panel-section">
-          <div class="panel-label">{{ lang.t("index.label.language") }}</div>
-          <a class="panel-link" href="/lang">view supported languages</a>
-          <input type="search" id="filter" class="input-base lang-filter" placeholder="{{ lang.t("index.placeholder.filter") }}" autocomplete="off">
-          <select name="extension" id="langs" class="lang-select" size="12" aria-label="{{ lang.t("index.aria.language") }}">
-          {%- for syntax in highlighter.syntaxes() -%}
-            {%- if let Some(extension) = syntax.extensions.first() %}
-            <option value="{{ extension }}">{{ syntax.name }}</option>
-            {%- endif -%}
-          {%- endfor %}
-          </select>
+          <div class="panel-label">preview</div>
+          <div id="preview" class="preview-pane markdown-body"></div>
         </section>
 
         <section class="panel-section">

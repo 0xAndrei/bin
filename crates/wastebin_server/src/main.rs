@@ -90,10 +90,14 @@ async fn security_headers_layer(req: Request, next: Next) -> impl IntoResponse {
         "default-src 'none'; script-src 'self'; img-src * data: ; style-src 'self' data: ; font-src 'self' data: ; object-src 'none' ; base-uri 'none' ; frame-ancestors 'none' ; form-action 'self' ;",
     );
 
-    let csp = if req.uri().path().starts_with("/md/") {
-        CSP_RENDERED
-    } else {
+    let csp = if req.uri().path().starts_with("/raw/")
+        || req.uri().path().starts_with("/dl/")
+        || req.uri().path().contains(".js")
+        || req.uri().path().contains(".css")
+    {
         CSP_STRICT
+    } else {
+        CSP_RENDERED
     };
 
     let headers: [(HeaderName, HeaderValue); 7] = [
