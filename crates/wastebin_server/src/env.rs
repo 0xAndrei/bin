@@ -59,7 +59,7 @@ impl Display for SocketType {
 }
 
 pub fn title() -> String {
-    std::env::var(vars::TITLE).unwrap_or_else(|_| "x0.ax".to_string())
+    std::env::var(vars::TITLE).unwrap_or_else(|_| "0x.ax".to_string())
 }
 
 pub fn theme() -> Result<Theme, Error> {

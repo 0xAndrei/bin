@@ -1,3 +1,4 @@
+pub mod download;
 pub mod extract;
 pub mod html;
 pub mod insert;
