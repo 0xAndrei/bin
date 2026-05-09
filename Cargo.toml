@@ -1,0 +1,43 @@
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+version = "3.6.2"
+edition = "2024"
+rust-version = "1.88"
+
+[workspace.dependencies]
+askama = { version = "0.16.0" }
+serde = { version = "1", features = ["derive"] }
+syntect = { version = "5", default-features = false, features = ["html", "plist-load", "regex-fancy"] }
+tokio = { version = "1", default-features = false }
+two-face = { version = "0.5.0-rc1", default-features = false, features = ["syntect-fancy"] }
+thiserror = "2"
+tracing = "0.1"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+cast_possible_truncation = "deny"
+cast_possible_wrap = "deny"
+cast_sign_loss = "deny"
+enum_glob_use = "deny"
+if_not_else = "deny"
+items_after_statements = "deny"
+missing_errors_doc = "allow"
+mut_mut = "deny"
+panic = "deny"
+print_stdout = "deny"
+similar_names = "deny"
+unicode_not_nfc = "deny"
+unwrap_used = "deny"
+used_underscore_binding = "deny"
+
+[profile.dev.package.rust-argon2]
+opt-level = 3
+
+[profile.release]
+strip = "debuginfo"
+lto = "fat"
